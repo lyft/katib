@@ -1,0 +1,12 @@
+blank_issues_enabled: true
+
+contact_links:
+  - name: Katib Documentation
+    url: https://www.kubeflow.org/docs/components/katib/
+    about: Much help can be found in the docs
+  - name: Kubeflow Katib Slack Channel
+    url: https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels
+    about: Ask the Katib community on CNCF Slack
+  - name: Kubeflow Katib Community Meeting
+    url: https://bit.ly/2PWVCkV
+    about: Join the Kubeflow AutoML working group meeting

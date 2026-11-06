@@ -1,0 +1,90 @@
+---
+# This example shows how you can use trial metadata in template substitution
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  namespace: kubeflow
+  name: trial-metadata-substitution
+spec:
+  objective:
+    type: minimize
+    goal: 0.001
+    objectiveMetricName: loss
+  algorithm:
+    algorithmName: random
+  parallelTrialCount: 3
+  maxTrialCount: 12
+  maxFailedTrialCount: 3
+  parameters:
+    - name: lr
+      parameterType: double
+      feasibleSpace:
+        min: "0.01"
+        max: "0.05"
+    - name: momentum
+      parameterType: double
+      feasibleSpace:
+        min: "0.5"
+        max: "0.9"
+  trialTemplate:
+    primaryContainerName: training-container
+    trialParameters:
+      - name: learningRate
+        description: Learning rate for the training model
+        reference: lr
+      - name: momentum
+        description: Momentum for the training model
+        reference: momentum
+      - name: trialName
+        description: Name of the current trial's job
+        reference: ${trialSpec.Name}
+      - name: trialNamespace
+        description: Namespace of the current trial's job
+        reference: ${trialSpec.Namespace}
+      - name: trialKind
+        description: Kind of the current trial's job
+        reference: ${trialSpec.Kind}
+      - name: trialAPIVersion
+        description: API version of the current trial's job
+        reference: ${trialSpec.APIVersion}
+      - name: trialLabelCustom
+        description: Trial's job label with custom value
+        reference: ${trialSpec.Labels[custom-key]}
+      - name: trialAnnotationCustom
+        description: Trial's job annotation with custom value
+        reference: ${trialSpec.Annotations[custom-key]}
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        annotations:
+          "custom-key": "custom-annotation"
+        labels:
+          "custom-key": "custom-label"
+      spec:
+        template:
+          spec:
+            containers:
+              - name: training-container
+                image: ghcr.io/kubeflow/katib/pytorch-mnist-cpu:latest
+                command:
+                  - "python3"
+                  - "/opt/pytorch-mnist/mnist.py"
+                  - "--epochs=1"
+                  - "--batch-size=16"
+                  - "--lr=${trialParameters.learningRate}"
+                  - "--momentum=${trialParameters.momentum}"
+                env:
+                  - name: TRIAL_NAME
+                    value: ${trialParameters.trialName}
+                  - name: TRIAL_NAMESPACE
+                    value: ${trialParameters.trialNamespace}
+                  - name: TRIAL_KIND
+                    value: ${trialParameters.trialKind}
+                  - name: TRIAL_API_VERSION
+                    value: ${trialParameters.trialAPIVersion}
+                  - name: TRIAL_LABEL_CUSTOM
+                    value: ${trialParameters.trialLabelCustom}
+                  - name: TRIAL_ANNOTATION_CUSTOM
+                    value: ${trialParameters.trialAnnotationCustom}
+            restartPolicy: Never

@@ -1,108 +1,238 @@
-# Katib
+# Kubeflow Katib
 
+[![Build Status](https://github.com/kubeflow/katib/actions/workflows/test-go.yaml/badge.svg?branch=master)](https://github.com/kubeflow/katib/actions/workflows/test-go.yaml?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/kubeflow/katib/badge.svg?branch=master)](https://coveralls.io/github/kubeflow/katib?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kubeflow/katib)](https://goreportcard.com/report/github.com/kubeflow/katib)
+[![Releases](https://img.shields.io/github/release-pre/kubeflow/katib.svg?sort=semver)](https://github.com/kubeflow/katib/releases)
+[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9941/badge)](https://www.bestpractices.dev/projects/9941)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkubeflow%2Fkatib.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkubeflow%2Fkatib?ref=badge_shield)
 
-Hyperparameter Tuning on Kubernetes.
-This project is inspired by [Google vizier](https://static.googleusercontent.com/media/research.google.com/ja//pubs/archive/bcb15507f4b52991a0783013df4222240e942381.pdf). Katib is a scalable and flexible hyperparameter tuning framework and is tightly integrated with kubernetes. Also it does not depend on a specific Deep Learning framework e.g. TensorFlow, MXNet, and PyTorch).
+<h1 align="center">
+    <img src="./docs/images/logo-title.png" alt="logo" width="200">
+  <br>
+</h1>
 
-## Name
+> [!WARNING]
+> **The Katib project is deprecated.** Users should migrate to the
+> [OptimizationJob APIs](https://trainer.kubeflow.org/en/latest/user-guides/optimizationjob.html),
+> which are released as part of the [Kubeflow Trainer](https://github.com/kubeflow/trainer) project
+> under the alpha feature gate.
+>
+> OptimizationJob is the next step for hyperparameter optimization in Kubeflow. It is natively
+> integrated with the TrainJob API, so every trial can use Trainer runtimes and distributed
+> training features out of the box. Metrics are pushed through the Kubeflow SDK and Trainer status
+> server, so you no longer need a separate database or a metrics collector sidecar.
+>
+> Work on the remaining features is tracked in
+> [kubeflow/trainer#3562](https://github.com/kubeflow/trainer/issues/3562).
 
-Katib stands for `secretary` in Arabic. As `Vizier` stands for a high official or a prime minister in Arabic, this project Katib is named in the honor of Vizier.
+Kubeflow Katib is a Kubernetes-native project for automated machine learning (AutoML).
+Katib supports
+[Hyperparameter Tuning](https://en.wikipedia.org/wiki/Hyperparameter_optimization),
+[Early Stopping](https://en.wikipedia.org/wiki/Early_stopping) and
+[Neural Architecture Search](https://en.wikipedia.org/wiki/Neural_architecture_search).
 
-## Concepts in Google Vizier
+Katib is the project which is agnostic to machine learning (ML) frameworks.
+It can tune hyperparameters of applications written in any language of the
+users’ choice and natively supports many ML frameworks, such as
+[TensorFlow](https://www.tensorflow.org/), [PyTorch](https://pytorch.org/), [XGBoost](https://xgboost.readthedocs.io/en/latest/), and others.
 
-As in Google Vizier, Katib also has the concepts of Study, Trial and Suggestion.
+Katib can perform training jobs using any Kubernetes
+[Custom Resources](https://www.kubeflow.org/docs/components/katib/trial-template/)
+with out of the box support for [Kubeflow Training Operator](https://github.com/kubeflow/training-operator),
+[Argo Workflows](https://github.com/argoproj/argo-workflows), [Tekton Pipelines](https://github.com/tektoncd/pipeline)
+and many more.
 
-### Study
+Katib stands for `secretary` in Arabic.
 
-Represents a single optimization run over a feasible space. Each Study contains a configuration describing the feasible space, as well as a set of Trials. It is assumed that objective function f(x) does not change in the course of a Study.
+## Search Algorithms
 
-### Trial
+Katib supports several search algorithms. Follow the
+[Kubeflow documentation](https://www.kubeflow.org/docs/components/katib/user-guides/hp-tuning/configure-algorithm/#hp-tuning-algorithms)
+to know more about each algorithm and check the
+[this guide](https://www.kubeflow.org/docs/components/katib/user-guides/hp-tuning/configure-algorithm/#use-custom-algorithm-in-katib)
+to implement your custom algorithm.
 
-A Trial is a list of parameter values, x, that will lead to a single evaluation of f(x). A Trial can be “Completed”, which means that it has been evaluated and the objective value f(x) has been assigned to it, otherwise it is “Pending”.
-One trial corresponds to one k8s Job.
+<table>
+  <tbody>
+    <tr align="center">
+      <td>
+        <b>Hyperparameter Tuning</b>
+      </td>
+      <td>
+        <b>Neural Architecture Search</b>
+      </td>
+      <td>
+        <b>Early Stopping</b>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#random-search">Random Search</a>
+      </td>
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#neural-architecture-search-based-on-enas">ENAS</a>
+      </td>
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/early-stopping/#median-stopping-rule">Median Stop</a>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#grid-search">Grid Search</a>
+      </td>
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#differentiable-architecture-search-darts">DARTS</a>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#bayesian-optimization">Bayesian Optimization</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#tree-of-parzen-estimators-tpe">TPE</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#multivariate-tpe">Multivariate TPE</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#covariance-matrix-adaptation-evolution-strategy-cma-es">CMA-ES</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#sobols-quasirandom-sequence">Sobol's Quasirandom Sequence</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#hyperband">HyperBand</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <a href="https://www.kubeflow.org/docs/components/katib/experiment/#pbt">Population Based Training</a>
+      </td>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-### Suggestion
+To perform the above algorithms Katib supports the following frameworks:
 
-A Suggestion is an algorithm to construct a parameter set. Currently Katib supports the following exploration algorithms:
+- [Goptuna](https://github.com/c-bata/goptuna)
+- [Hyperopt](https://github.com/hyperopt/hyperopt)
+- [Optuna](https://github.com/optuna/optuna)
+- [Scikit Optimize](https://github.com/scikit-optimize/scikit-optimize)
 
-* random
-* grid
-* [hyperband](https://arxiv.org/pdf/1603.06560.pdf)
-* [bayesian optimization](https://arxiv.org/pdf/1012.2599.pdf)
+## Prerequisites
 
-## Components in Katib
+Please check [the official Kubeflow documentation](https://www.kubeflow.org/docs/components/katib/installation/#prerequisites)
+for prerequisites to install Katib.
 
-Katib consists of several components as shown below. Each component is running on k8s as a deployment.
-Each component communicates with others via GRPC and the API is defined at `api/api.proto`.
+## Installation
 
-- vizier: main components.
-    - vizier-core : API server of vizier.
-    - vizier-db
-- suggestion : implementation of each exploration algorithm.
-    - vizier-suggestion-random
-    - vizier-suggestion-grid
-    - vizier-suggestion-hyperband
-    - vizier-suggestion-bayesianoptimization
-- modeldb : WebUI
-    - modeldb-frontend
-    - modeldb-backend
-    - modeldb-db
+Please follow [the Kubeflow Katib guide](https://www.kubeflow.org/docs/components/katib/installation/#installing-katib)
+for the detailed instructions on how to install Katib.
+
+### Installing the Control Plane
+
+Run the following command to install the latest stable release of Katib control plane:
+
+```
+kubectl apply -k "github.com/kubeflow/katib.git/manifests/v1beta1/installs/katib-standalone?ref=v0.17.0"
+```
+
+Run the following command to install the latest changes of Katib control plane:
+
+```
+kubectl apply -k "github.com/kubeflow/katib.git/manifests/v1beta1/installs/katib-standalone?ref=master"
+```
+
+For the Katib Experiments check the [complete examples list](./examples/v1beta1).
+
+### Installing the Python SDK
+
+Katib implements [a Python SDK](https://pypi.org/project/kubeflow-katib/) to simplify creation of
+hyperparameter tuning jobs for Data Scientists.
+
+Run the following command to install the latest stable release of Katib SDK:
+
+```sh
+pip install -U kubeflow-katib
+```
 
 ## Getting Started
 
-Please see [MinikubeDemo.md](./examples/MinikubeDemo.md) for more details.
+Please refer to [the getting started guide](https://www.kubeflow.org/docs/components/katib/getting-started/#getting-started-with-katib-python-sdk)
+to quickly create your first hyperparameter tuning Experiment using the Python SDK.
 
-## StudyConfig
+## Community
 
-In the Study config file, we define the feasible space of parameters and configuration of a kubernetes job. Examples of such Study configs are in the `conf` directory. The configuration items are as follows:
+The following links provide information on how to get involved in the community:
 
-- name: Study name
-- owner: Owner
-- objectivevaluename: Name of the objective value. Your evaluated software should be print log `{objectivevaluename}={objective value}` in std-io.
-- optimizationtype: Optimization direction of the objective value. 1=maximize 2=minimize
-- suggestalgorithm: [random, grid, hyperband] now
-- suggestionparameters: Parameter of the algorithm. Set name-value style.
-    - In random suggestion
-        - SuggestionNum: How many suggestions will Katib create.
-        - MaxParallel: Max number of run on kubernetes
-    - In grid suggestion
-        - MaxParallel: Max number of run on kubernetes
-        - GridDefault: default number of grid
-        - name: [parameter name] grid number of specified parameter.
-- metrics: The value you want to save to modeldb besides objectivevaluename.
-- image: docker image name
-- mount
-    - pvc: pvc
-    - path: MountPath in container
-- pullsecret: Name of Image pull secret
-- gpu: number of GPU (If you want to run cpu task, set 0 or delete this parameter)
-- command: commands
-- parameterconfigs: define feasible space
-    - configs
-        - name : parameter space
-        - parametertype: 1=float, 2=int, 4=categorical
-        - feasible
-            - min
-            - max
-            - list (for categorical)
+- Attend [the bi-weekly AutoML and Training Working Group](https://bit.ly/2PWVCkV)
+  community meeting.
+- Join our [`#kubeflow-katib`](https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels)
+  Slack channel.
+- Check out [who is using Katib](ADOPTERS.md) and [presentations about Katib project](docs/presentations.md).
 
-## Web UI
+## Contributing
 
-Katib provides a Web UI based on ModelDB(https://github.com/mitdbg/modeldb). The ingress setting is defined in [`manifests/modeldb/frontend/ingress.yaml`](manifests/modeldb/frontend/ingress.yaml).
+Please refer to the [CONTRIBUTING guide](CONTRIBUTING.md).
 
-![katib-demo](https://user-images.githubusercontent.com/10014831/38241910-64fb0646-376e-11e8-8b98-c26e577f3935.gif)
+## Citation
 
-## CLI Documentation
+If you use Katib in a scientific publication, we would appreciate
+citations to the following paper:
 
-Please refer to [katib-cli.md](./docs/CLI/katib-cli.md).
+[A Scalable and Cloud-Native Hyperparameter Tuning System](https://arxiv.org/abs/2006.02085), George _et al._, arXiv:2006.02085, 2020.
 
-## CONTRIBUTING
+Bibtex entry:
 
-Please feel free to test the system! [developer-guide.md](./docs/developer-guide.md) is a good starting point for developers.
-
-## TODOs
-
-* Integrate KubeFlow (TensorFlow, Caffe2 and PyTorch operators)
-* Support Early Stopping
-* Enrich the GUI
+```
+@misc{george2020katib,
+    title={A Scalable and Cloud-Native Hyperparameter Tuning System},
+    author={Johnu George and Ce Gao and Richard Liu and Hou Gang Liu and Yuan Tang and Ramdoot Pydipaty and Amit Kumar Saha},
+    year={2020},
+    eprint={2006.02085},
+    archivePrefix={arXiv},
+    primaryClass={cs.DC}
+}
+```

@@ -1,0 +1,18 @@
+<div class="lib-content-wrapper">
+  <lib-title-actions-toolbar title="Experiments" [buttons]="buttons" i18n-title>
+    <lib-namespace-select
+      *ngIf="(ns.dashboardConnected$ | async) === dashboardDisconnectedState"
+      namespacesUrl="/katib/fetch_namespaces"
+    ></lib-namespace-select>
+  </lib-title-actions-toolbar>
+
+  <div class="page-padding lib-flex-grow lib-overflow-auto">
+    <lib-table
+      [config]="config"
+      [data]="experiments"
+      [trackByFn]="trackByFn"
+      (actionsEmitter)="reactToAction($event)"
+    >
+    </lib-table>
+  </div>
+</div>

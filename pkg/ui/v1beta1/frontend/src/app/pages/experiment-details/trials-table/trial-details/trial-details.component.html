@@ -1,0 +1,66 @@
+<div class="lib-content-wrapper">
+  <lib-title-actions-toolbar
+    [backButton]="true"
+    (back)="returnToExperimentDetails()"
+    title="Trial details"
+  >
+  </lib-title-actions-toolbar>
+
+  <!--scrollable area-->
+  <div class="page-padding lib-flex-grow lib-overflow-auto">
+    <!--spinner-->
+    <ng-container *ngIf="pageLoading; else content">
+      <lib-loading-spinner
+        message="Fetching Trial details..."
+      ></lib-loading-spinner>
+    </ng-container>
+    <!--the tabs-->
+  </div>
+</div>
+
+<ng-template #content>
+  <div *ngIf="showTrialGraph; else emptyGraph" class="graph-wrapper">
+    <div
+      echarts
+      [initOpts]="initOpts"
+      [options]="options"
+      [merge]="options"
+      class="graph"
+    ></div>
+  </div>
+
+  <ng-template #emptyGraph>
+    <lib-panel icon="info" color="primary" class="panel">
+      Trial is not completed yet.
+    </lib-panel>
+  </ng-template>
+
+  <div class="tab-height-fix">
+    <mat-tab-group dynamicHeight animationDuration="0ms">
+      <mat-tab label="OVERVIEW">
+        <ng-template matTabContent>
+          <app-trial-overview
+            [trialName]="trialName"
+            [experimentName]="experimentName"
+            [trial]="trialDetails"
+          ></app-trial-overview>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="LOGS">
+        <ng-template matTabContent>
+          <app-trial-logs
+            [trialLogs]="trialLogs"
+            [logsRequestError]="logsRequestError"
+          ></app-trial-logs>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="YAML">
+        <ng-template matTabContent>
+          <app-trial-yaml [trialJson]="trialDetails"></app-trial-yaml>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</ng-template>

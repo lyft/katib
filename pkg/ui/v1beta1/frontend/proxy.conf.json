@@ -1,0 +1,13 @@
+{
+  "/katib/*": {
+    "target": "http://localhost:8000",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/static": {
+    "target": "http://localhost:4200",
+    "pathRewrite": { "^/static": "" },
+    "secure": false
+  }
+}

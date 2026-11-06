@@ -1,0 +1,48 @@
+# Composite action to setup e2e tests.
+name: Setup E2E Test
+description: setup env for e2e test using the minikube cluster
+
+inputs:
+  kubernetes-version:
+    required: true
+    description: kubernetes version
+  python-version:
+    required: false
+    description: Python version
+    # Most latest supporting version
+    default: "3.10"
+
+runs:
+  using: composite
+  steps:
+    # This step is a Workaround to avoid the "No space left on device" error.
+    # ref: https://github.com/actions/runner-images/issues/2840
+    - name: Free-Up Disk Space
+      uses: ./.github/workflows/free-up-disk-space
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v4
+      with:
+        version: ${{ inputs.kubernetes-version }}
+
+    - name: Setup Minikube Cluster
+      uses: medyagh/setup-minikube@v0.0.20
+      with:
+        network-plugin: cni
+        cni: flannel
+        driver: none
+        kubernetes-version: ${{ inputs.kubernetes-version }}
+        minikube-version: 1.37.0
+        start-args: --wait-timeout=120s
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Katib SDK
+      shell: bash
+      run: pip install --prefer-binary -e sdk/python/v1beta1

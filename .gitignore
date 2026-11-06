@@ -1,11 +1,21 @@
 # python ignore files
 __pycache__/
 .idea/
+.coverage
+.pytest_cache
+*.egg-info
+build/
+*.charm
+test/unit/v1beta1/metricscollector/testdata
+dist/
+
+# SDK generator JAR file
+hack/gen-python-sdk/openapi-generator-cli.jar
+hack/gen-python-api/openapi-generator-cli.jar
 
 # Project specific ignore files
 *.swp
 bin
-/katib-cli
 
 # Go ignore files
 ## Binaries for programs and plugins
@@ -14,6 +24,7 @@ bin
 *.dll
 *.so
 *.dylib
+pkg/metricscollector/v1beta1/file-metricscollector/testdata
 
 ## Test binary, build with `go test -c`
 *.test
@@ -62,3 +73,13 @@ ehthumbs_vista.db
 
 ## Recycle Bin used on file shares
 $RECYCLE.BIN/
+
+/katib-controller
+/katib-db-manager
+/katib-ui
+
+## Vendor dir
+vendor
+
+# Jupyter Notebooks.
+**/.ipynb_checkpoints

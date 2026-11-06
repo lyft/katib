@@ -1,0 +1,68 @@
+---
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  namespace: kubeflow
+  name: hyperband
+spec:
+  parallelTrialCount: 2
+  maxTrialCount: 2
+  objective:
+    type: minimize
+    goal: 0.001
+    objectiveMetricName: loss
+  algorithm:
+    algorithmName: hyperband
+    algorithmSettings:
+      - name: "resource_name"
+        value: "num-epochs"
+      - name: "eta"
+        value: "2"
+      - name: "r_l"
+        value: "2"
+  maxFailedTrialCount: 2
+  parameters:
+    - name: lr
+      parameterType: double
+      feasibleSpace:
+        min: "0.01"
+        max: "0.05"
+    - name: momentum
+      parameterType: double
+      feasibleSpace:
+        min: "0.5"
+        max: "0.9"
+    - name: num-epochs
+      parameterType: int
+      feasibleSpace:
+        min: "1"
+        max: "1"
+  trialTemplate:
+    primaryContainerName: training-container
+    trialParameters:
+      - name: learningRate
+        description: Learning rate for the training model
+        reference: lr
+      - name: momentum
+        description: Momentum for the training model
+        reference: momentum
+      - name: numberEpochs
+        description: Number of epochs to train the model
+        reference: num-epochs
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      spec:
+        template:
+          spec:
+            containers:
+              - name: training-container
+                image: ghcr.io/kubeflow/katib/pytorch-mnist-cpu:latest
+                command:
+                  - "python3"
+                  - "/opt/pytorch-mnist/mnist.py"
+                  - "--epochs=${trialParameters.numberEpochs}"
+                  - "--batch-size=16"
+                  - "--lr=${trialParameters.learningRate}"
+                  - "--momentum=${trialParameters.momentum}"
+            restartPolicy: Never

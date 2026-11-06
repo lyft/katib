@@ -1,8 +1,10 @@
 approvers:
-    - YujiOshima
-    - jlewi
-    - gaocegege
+  - andreyvelich
+  - Electronic-Waste
+  - gaocegege
+  - johnugeorge
 reviewers:
-    - ddysher
-    - jose5918
-    - libbyandhelen
+  - anencore94
+  - c-bata
+emeritus_approvers:
+  - tenzen-y

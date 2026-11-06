@@ -1,0 +1,81 @@
+# Reusable workflows for publishing Katib images.
+name: Build and Publish Images
+
+on:
+  workflow_call:
+    inputs:
+      component-name:
+        required: true
+        type: string
+      platforms:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+
+jobs:
+  build-and-publish:
+    name: Build and Publish Images
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set Publish Condition
+        id: publish-condition
+        shell: bash
+        run: |
+          if [[ "${{ github.repository }}" == 'kubeflow/katib' && \
+                ( "${{ github.ref }}" == 'refs/heads/master' || \
+                  "${{ github.ref }}" =~ ^refs/heads/release- || \
+                  "${{ github.ref }}" =~ ^refs/tags/v ) ]]; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: GHCR Login
+        if: steps.publish-condition.outputs.should_publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: DockerHub Login
+        if: steps.publish-condition.outputs.should_publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish Component ${{ inputs.component-name }}
+        if: steps.publish-condition.outputs.should_publish == 'true'
+        id: publish
+        uses: ./.github/workflows/template-publish-image
+        with:
+          image: |
+            ghcr.io/kubeflow/katib/${{ inputs.component-name }}
+            docker.io/kubeflowkatib/${{ inputs.component-name }}
+          dockerfile: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          push: true
+
+      - name: Test Build For Component ${{ inputs.component-name }}
+        if: steps.publish.outcome == 'skipped'
+        uses: ./.github/workflows/template-publish-image
+        with:
+          image: |
+            ghcr.io/kubeflow/katib/${{ inputs.component-name }}
+            docker.io/kubeflowkatib/${{ inputs.component-name }}
+          dockerfile: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          push: false

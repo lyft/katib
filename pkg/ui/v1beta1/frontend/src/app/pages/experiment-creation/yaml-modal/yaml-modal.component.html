@@ -1,0 +1,16 @@
+<h1 mat-dialog-title>Edit YAML</h1>
+
+<div mat-dialog-content>
+  <lib-monaco-editor
+    [(text)]="yaml"
+    [language]="'yaml'"
+    [readOnly]="false"
+    [width]="700"
+    [height]="350"
+  ></lib-monaco-editor>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" (click)="save()">CREATE</button>
+  <button mat-button cdkFocusInitial (click)="close()">CANCEL</button>
+</div>

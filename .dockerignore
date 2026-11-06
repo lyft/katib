@@ -1,0 +1,6 @@
+.git
+.gitignore
+docs
+manifests
+pkg/ui/*/frontend/node_modules
+pkg/ui/*/frontend/build

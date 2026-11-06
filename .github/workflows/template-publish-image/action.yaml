@@ -1,0 +1,62 @@
+# Composite action for publishing Katib images.
+name: Build And Publish Container Images
+description: Build MultiPlatform Supporting Container Images
+
+inputs:
+  image:
+    required: true
+    description: image tag
+  dockerfile:
+    required: true
+    description: path for dockerfile
+  platforms:
+    required: true
+    description: linux/amd64 or linux/amd64,linux/arm64
+  push:
+    required: true
+    description: whether to push container images or not
+
+runs:
+  using: composite
+  steps:
+      # This step is a Workaround to avoid the "No space left on device" error.
+      # ref: https://github.com/actions/runner-images/issues/2840
+    - name: Remove unnecessary files
+      shell: bash
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /usr/local/share/powershell
+        sudo rm -rf /usr/share/swift
+
+        echo "Disk usage after cleanup:"
+        df -h
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set Up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Add Docker Tags
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.image }}
+        tags: |
+          type=raw,latest
+          type=sha,prefix=v1beta1-
+
+    - name: Build and Push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        push: ${{ inputs.push }}
+        tags: ${{ steps.meta.outputs.tags }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max,ignore-error=true
+        platforms: ${{ inputs.platforms }}

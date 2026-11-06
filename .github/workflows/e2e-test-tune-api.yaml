@@ -1,0 +1,40 @@
+name: E2E Test with tune API
+
+on:
+  pull_request:
+    paths-ignore:
+      - "pkg/ui/v1beta1/frontend/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Test Env
+        uses: ./.github/workflows/template-setup-e2e-test
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
+      
+      - name: Install Katib SDK with extra requires
+        shell: bash
+        run: |
+          pip install --prefer-binary -e 'sdk/python/v1beta1[huggingface]'
+      
+      - name: Run e2e test with tune API
+        uses: ./.github/workflows/template-e2e-test
+        with:
+          tune-api: true
+          training-operator: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Detail: https://hub.docker.com/r/kindest/node
+        kubernetes-version: ["v1.31.3", "v1.32.2", "v1.33.1", "v1.34.0"]

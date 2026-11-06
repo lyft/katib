@@ -1,0 +1,30 @@
+name: Lint Files
+
+on:
+  pull_request:
+    paths-ignore:
+      - "pkg/ui/v1beta1/frontend/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Check shell scripts
+        run: make shellcheck
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

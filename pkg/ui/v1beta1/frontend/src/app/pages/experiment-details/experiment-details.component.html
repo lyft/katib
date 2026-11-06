@@ -1,0 +1,74 @@
+<div class="lib-content-wrapper">
+  <lib-title-actions-toolbar
+    [buttons]="buttonsConfig"
+    [backButton]="true"
+    (back)="returnToExperiments()"
+    title="Experiment details"
+  >
+  </lib-title-actions-toolbar>
+
+  <!--scrollable area-->
+  <div class="page-padding lib-flex-grow lib-overflow-auto">
+    <!--spinner-->
+    <ng-container *ngIf="pageLoading; else content">
+      <lib-loading-spinner
+        message="Fetching Experiment details..."
+      ></lib-loading-spinner>
+    </ng-container>
+    <!--the tabs-->
+  </div>
+</div>
+
+<ng-template #content>
+  <app-trials-graph-echarts
+    *ngIf="showGraph; else emptyGraph"
+    [experimentTrialsCsv]="experimentTrialsCsv"
+    [experiment]="experimentDetails"
+    class="graph"
+  ></app-trials-graph-echarts>
+
+  <ng-template #emptyGraph>
+    <lib-panel icon="info" color="primary" class="panel">
+      Couldn't find any successful Trial.
+    </lib-panel>
+  </ng-template>
+
+  <div class="tab-height-fix">
+    <mat-tab-group
+      dynamicHeight
+      animationDuration="0ms"
+      [(selectedIndex)]="selectedTab"
+      (selectedTabChange)="tabChanged($event)"
+    >
+      <mat-tab label="OVERVIEW">
+        <app-experiment-overview
+          [experimentName]="name"
+          [experiment]="experimentDetails"
+        ></app-experiment-overview>
+      </mat-tab>
+      <mat-tab label="TRIALS"
+        ><app-trials-table
+          (leaveMouseFromTrial)="mouseLeftTrial()"
+          (mouseOnTrial)="mouseOverTrial($event)"
+          [data]="details"
+          [experimentName]="name"
+          [displayedColumns]="columns"
+          [namespace]="namespace"
+          [bestTrialName]="bestTrialName"
+        ></app-trials-table>
+      </mat-tab>
+      <mat-tab label="DETAILS">
+        <app-experiment-details-tab
+          [experiment]="experimentDetails"
+        ></app-experiment-details-tab>
+      </mat-tab>
+      <mat-tab label="YAML">
+        <ng-template matTabContent>
+          <app-experiment-yaml
+            [experimentJson]="experimentDetails"
+          ></app-experiment-yaml>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</ng-template>

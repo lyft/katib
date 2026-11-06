@@ -1,0 +1,56 @@
+<div class="lib-step-wrapper">
+  <div class="flex-column step-content">
+    <form [formGroup]="algorithmForm" class="flex">
+      <div class="flex-column">
+        <mat-radio-group formControlName="type" class="algo-options-group flex">
+          <mat-radio-button value="hp">Hyper Parameter tuning</mat-radio-button>
+          <mat-radio-button value="nas">
+            Neural Architecture Search
+          </mat-radio-button>
+        </mat-radio-group>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <mat-select formControlName="algorithm">
+            <mat-option
+              *ngFor="let algo of algorithms | keyvalue"
+              [value]="algo.key"
+              >{{ algo.value }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </form>
+
+    <!--Algorithm configuration parameters-->
+    <lib-advanced-options
+      *ngIf="algorithmHasSettings"
+      text="Algorithm settings"
+    >
+      <div class="flex-column">
+        <app-algorithm-setting
+          *ngFor="let setting of algorithmSettings.controls; let i = index"
+          [setting]="setting"
+        ></app-algorithm-setting>
+      </div>
+    </lib-advanced-options>
+  </div>
+
+  <!--step info-->
+  <div class="lib-step-info-wrapper">
+    <lib-step-info header="Search Algorithm">
+      The <em>Search Algorithm</em> is responsible for navigating through the
+      optimization search space and creating <em>Trial CRs</em> for each step.
+      The algorithms' code will be executed from the underlying
+      <em>Suggestion CR.</em>
+      You can read the
+      <a
+        href="https://www.kubeflow.org/docs/components/katib/experiment/#search-algorithms-in-detail"
+        target="_blank"
+        rel="noopener noreferrer"
+        >official docs</a
+      >
+      for a full list of supported algorithms and their configurations.
+    </lib-step-info>
+  </div>
+</div>
